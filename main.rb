@@ -3,6 +3,7 @@ require 'sinatra/reloader' if development?
 require 'slim'
 require 'sass'
 require './song'
+require 'sinatra/flash'
 
 configure do
   enable :sessions
@@ -18,6 +19,26 @@ configure :production do
   DataMapper.setup(:default, ENV['DATABASE_URL'])
 end
 
+before do
+  set_title
+end
+
+helpers do
+  def css(*stylesheets)
+    stylesheets.map do |stylesheet|
+      "<link href=\"/#{stylesheet}.css\" media=\"screen, projection\" rel=\"stylesheet\" />"
+    end.join
+  end
+
+  def current?(path='/')
+    (request.path==path || request.path==path+'/') ? "current" : nil
+  end
+
+  def set_title
+    @title ||= 'Songs By Sinatra'
+  end
+end
+
 get('/styles.css'){ scss :styles }
 
 get '/' do
@@ -30,10 +51,12 @@ get '/about' do
 end
 
 get '/contact' do
+  @title = 'Get In Touch'
   slim :contact
 end
 
 not_found do
+  @title = "Don't Know This Song"
   slim :not_found
 end
 
@@ -46,6 +69,7 @@ get '/get/hello' do
 end
 
 get '/login' do
+  @title = 'Login'
   slim :login
 end
 
